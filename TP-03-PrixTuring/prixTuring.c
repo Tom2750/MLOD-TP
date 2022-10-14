@@ -48,12 +48,85 @@ int scanLineAsInt() {
 	return buf;
 }
 
+typedef struct {
+	int year;
+	char *name;
+	char *description;
+} Winner;
 
-int main(void)
-{
+void readWinner(Winner *w){
+	w->year = scanLineAsInt();
+	w->name = scanLine();
+	w->description = scanLine();
+}
+
+Winner *readWinners(int nbGagnants){
+	Winner *res = malloc(nbGagnants*sizeof(Winner));
+	for(int i = 0; i < nbGagnants; i++){
+		readWinner(&res[i]);
+	}
+	return res;
+}
+
+void printWinners(Winner* w, int nbGagnants){
+	for(int i = 0; i < nbGagnants; i++){
+		printf("%d",(w+i)->year);printf("\n");
+		printf("%s",(w+i)->name);printf("\n");
+		printf("%s",(w+i)->description);printf("\n");
+	}
+}
+
+void sortTuringWinnersByYear(){
+	
+}
+
+void infosAnnee(Winner* w, int nbGagnants, int annee){
+
+	for(int i = 0; i < nbGagnants; i++){
+		if((w+i)->year == annee){
+			printf("L'annee %d, le(s) gagnant(s) ont été : %s\n",annee,(w+i)->name);
+			printf("Nature des travaux : %s\n", (w+i)-> description);
+		}
+	}
+}
+
+int main(int argc, char *argv[]){
 
 	int nbGagnants = scanLineAsInt();
-	printf("nbGagnants = %i\n",nbGagnants);
+	printf("%i\n",nbGagnants);
+
+	Winner* w;
+	w = readWinners(nbGagnants);
+
+	// infosAnnee(w, nbGagnants, *argv[1]);
+	infosAnnee(w, nbGagnants, 2011);
+
+	for(int i = 0; i < nbGagnants; i++){
+		free((w+i)->name);
+		free((w+i)->description);
+	}
+
+	free(w);
 
 	return EXIT_SUCCESS;
 }
+
+
+// int main(void) {
+// 	int nbGagnants = scanLineAsInt();
+// 	printf("%i\n",nbGagnants);
+	
+// 	Winner* w;
+// 	w = readWinners(nbGagnants);
+
+// 	printWinners(w,nbGagnants);
+
+// 	for(int i = 0; i < nbGagnants; i++){
+// 		free((w+i)->name);
+// 		free((w+i)->description);
+// 	}
+
+// 	free(w);
+
+// 	return EXIT_SUCCESS;
+// }
