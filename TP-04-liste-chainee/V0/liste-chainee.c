@@ -25,7 +25,7 @@ Liste ajoutTete(Element v, Liste l) {
 }
 
 void afficheElement(Element e) {
-	printf("%i ",e);
+	printf("%i ",e);	
 }
 
 // affiche tous les éléments de la liste l
@@ -37,14 +37,13 @@ void afficheListe_i(Liste l) {
 	while(!estVide(l)){
 		afficheElement(l->val);
 		l = l->suiv;
-	}
-	TODO;
+	};
 }
 
 // version recursive
 void afficheListe_r(Liste l) {
 	if(estVide(l)){
-		return NULL;
+
 	} else {
 		afficheElement(l->val);
 		afficheListe_r(l->suiv);
@@ -52,7 +51,7 @@ void afficheListe_r(Liste l) {
 }
 
 void detruireElement(Element e) {
-	free(&e);
+	free(e);
 }
 
 // Détruit tous les éléments de la liste l
@@ -60,25 +59,41 @@ void detruireElement(Element e) {
 void detruire_i(Liste l) {
 	while(!estVide(l)){
 		detruireElement(l->val);
-		detruire_i(l->suiv);
 		free(l);
-	}
+		l = l->suiv;
+	};
 }
 
 // version récursive
 void detruire_r(Liste l) {
-	TODO;
+	if(estVide(l)){
+		free(l);
+	} else {
+		detruireElement(l->val);
+		detruire_r(l->suiv);
+		free(l);
+	}
 }
 
 // retourne la liste dans laquelle l'élément v a été ajouté en fin
 // version itérative
 Liste ajoutFin_i(Element v, Liste l) {
-	return TODO;
+	Liste l_suiv = l->suiv;
+	while(!estVide(l_suiv)){
+		l_suiv = l_suiv->suiv;
+	};
+	l_suiv = creer(v);
+	return l;
 }
 
 // version recursive
 Liste ajoutFin_r(Element v, Liste l) {
-	return TODO;
+	if(estVide(l)){
+		l = creer(v);
+	} else {
+		ajoutFin_r(v,l->suiv);
+	}
+	return l;
 }
 
 // compare deux elements
@@ -89,31 +104,59 @@ bool equalsElement(Element e1, Element e2){
 // Retourne un pointeur sur l'élément de la liste l contenant la valeur v ou NULL
 // version itérative
 Liste cherche_i(Element v,Liste l) {
-	return TODO;
+	while(!estVide(l)){
+		if(equalsElement(l->val, v)){
+			return l;
+		} else {
+			l = l->suiv;
+		}
+	}
+	return NULL;
 }
 
 // version récursive
 Liste cherche_r(Element v,Liste l) {
-	return TODO;
+	if(equalsElement(l->val, v)||estVide(l)){
+		if(equalsElement(l->val, v)){
+			return l;
+		}
+		if(estVide(l)){
+			return NULL;
+		}
+	} else {
+		cherche_r(v,l->suiv);
+	}
 }
 
 // Retourne la liste modifiée dans la laquelle le premier élément ayant la valeur v a été supprimé
 // ne fait rien si aucun élément possède cette valeur
 // version itérative
 Liste retirePremier_i(Element v, Liste l) {
-	return TODO;
+	Liste l_suiv = l;
+	while(!estVide(l)){
+		if(equalsElement(l_suiv->val,v)){
+			l_suiv = (l_suiv->suiv);
+		} else {
+			l_suiv = l_suiv->suiv;
+		}
+		return l;
+	}
 }
 
 
 // version recursive
 Liste retirePremier_r(Element v, Liste l) {
-	return TODO;
+	if(equalsElement(l->val,v)){
+		l=(l->suiv);
+	} else {
+		retirePremier_r(v,l->suiv);
+	}
+	return l;
 }
+
+
 
 
 void afficheEnvers_r(Liste l) {
 	TODO;
 }
-
-
-
