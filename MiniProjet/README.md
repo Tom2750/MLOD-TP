@@ -4,3 +4,11 @@ Idée de mini projet : Améliorer le jeu "gorilas" déjà existant en ajoutant l
 Armes:
 O : Arme 0 déjà implémenté dans le jeu
 1 : Arme 1 qui tirera de plus petites sphères mais en rafales
+
+ou bien
+
+une ia contre qui jouer
+
+
+
+compilation : cc main.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11

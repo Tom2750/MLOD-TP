@@ -18,9 +18,9 @@ Liste creer(Element v){
 
 // ajoute l'élément v en tete de la liste l
 Liste ajoutTete(Element v, Liste l) {
-	Liste ltete = malloc(sizeof(Cellule));
-	l->suiv = ltete;
-	ltete->val = v;	
+	Liste ltete = creer(v);
+	ltete->suiv = l;
+
 	return ltete;
 }
 
@@ -37,38 +37,38 @@ void afficheListe_i(Liste l) {
 	while(!estVide(l)){
 		afficheElement(l->val);
 		l = l->suiv;
-	};
+	}
+	printf("\n");
 }
 
 // version recursive
 void afficheListe_r(Liste l) {
 	if(estVide(l)){
-
+		printf("\n");
 	} else {
 		afficheElement(l->val);
 		afficheListe_r(l->suiv);
 	}
 }
 
-void detruireElement(Element e) {
-	free(e);
-}
+void detruireElement(Element e) {}
 
 // Détruit tous les éléments de la liste l
 // version itérative
 void detruire_i(Liste l) {
+	Liste suivant, courant;
+
 	while(!estVide(l)){
-		detruireElement(l->val);
-		free(l);
-		l = l->suiv;
+		suivant = courant -> suiv;
+		detruireElement(courant->val);
+		free(courant);
+		courant = suivant;
 	};
 }
 
 // version récursive
 void detruire_r(Liste l) {
-	if(estVide(l)){
-		free(l);
-	} else {
+	if(!estVide(l)){
 		detruireElement(l->val);
 		detruire_r(l->suiv);
 		free(l);
@@ -78,11 +78,15 @@ void detruire_r(Liste l) {
 // retourne la liste dans laquelle l'élément v a été ajouté en fin
 // version itérative
 Liste ajoutFin_i(Element v, Liste l) {
-	Liste l_suiv = l->suiv;
-	while(!estVide(l_suiv)){
-		l_suiv = l_suiv->suiv;
-	};
-	l_suiv = creer(v);
+	Liste elem = creer(v);
+	Liste p = l;
+
+	if(estVide(p)) return elem;
+
+	while(!estVide(p->suiv))
+		p = p->suiv;
+	p->suiv = elem;
+
 	return l;
 }
 
@@ -91,7 +95,7 @@ Liste ajoutFin_r(Element v, Liste l) {
 	if(estVide(l)){
 		l = creer(v);
 	} else {
-		ajoutFin_r(v,l->suiv);
+		l->suiv = ajoutFin_r(v,l->suiv);
 	}
 	return l;
 }
@@ -116,15 +120,10 @@ Liste cherche_i(Element v,Liste l) {
 
 // version récursive
 Liste cherche_r(Element v,Liste l) {
-	if(equalsElement(l->val, v)||estVide(l)){
-		if(equalsElement(l->val, v)){
-			return l;
-		}
-		if(estVide(l)){
-			return NULL;
-		}
-	} else {
-		cherche_r(v,l->suiv);
+	if(estVide(l)){ return NULL; }
+	else if(equalsElement(l->val,v)){ return l;}
+	else {
+		 return cherche_r(v,l->suiv);
 	}
 }
 
@@ -132,15 +131,18 @@ Liste cherche_r(Element v,Liste l) {
 // ne fait rien si aucun élément possède cette valeur
 // version itérative
 Liste retirePremier_i(Element v, Liste l) {
-	Liste l_suiv = l;
-	while(!estVide(l)){
-		if(equalsElement(l_suiv->val,v)){
-			l_suiv = (l_suiv->suiv);
-		} else {
-			l_suiv = l_suiv->suiv;
-		}
-		return l;
+	Liste p = l;
+	if(estVide(p)) return l;
+
+	while(!equalsElement((p->suiv)->val, v)&&(!estVide(p->suiv))){
+		p = p->suiv;
 	}
+	
+	if(equalsElement((p->suiv)->val, v)){
+		(p->suiv) = (p->suiv)->suiv;
+	}
+
+	return l;
 }
 
 
@@ -149,13 +151,10 @@ Liste retirePremier_r(Element v, Liste l) {
 	if(equalsElement(l->val,v)){
 		l=(l->suiv);
 	} else {
-		retirePremier_r(v,l->suiv);
+		(l->suiv) = retirePremier_r(v,l->suiv);
 	}
 	return l;
 }
-
-
-
 
 void afficheEnvers_r(Liste l) {
 	TODO;
