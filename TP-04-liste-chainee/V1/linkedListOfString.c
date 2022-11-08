@@ -2,13 +2,17 @@
 #include "linkedList.c"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
-void afficheElement(Element e){printf("%c",e);}
+void afficheElement(Element e){
+    printf(e);
+    printf("\n");
+}
 
 void detruireElement(Element e){}
 
 bool equalsElement(Element e1, Element e2){
-    return (int)e1 == (int)e2;
+    return (strcmp(e1, e2) == 0);
 }
 
 int main(void){
@@ -17,22 +21,16 @@ int main(void){
 	l = NULL;
 	printf("estVide(l) = %s\n",estVide(l)?"TRUE":"FALSE");
 
-	l = ajoutTete('a',l);
-	l = ajoutTete('b',l);
-	l = ajoutTete('c',l);
-	l = ajoutTete('d',l);
-	l = ajoutTete('e',l);
-	l = ajoutTete('f',l);
-	l = ajoutTete('g',l);
-	l = ajoutTete('h',l);
-	l = ajoutTete('i',l);
+	l = ajoutTete("abc",l);
+	l = ajoutTete("def",l);
+	l = ajoutTete("ghi",l);
 
 	afficheListe_i(l);
 
-    ajoutFin_i('P',l);
+    ajoutFin_i("Phehe",l);
 	afficheListe_i(l);
 
-    printf("retirePremier_r(e)   : ");
-	l = retirePremier_r('e',l);
+    printf("retirePremier_r(def)   : ");
+	l = retirePremier_r("def",l);
 	afficheListe_r(l);
 }
