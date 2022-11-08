@@ -87,7 +87,7 @@ Liste ajoutFin_i(Element v, Liste l) {
 		p = p->suiv;
 	p->suiv = elem;
 
-	return l;
+	return l;	
 }
 
 // version recursive
@@ -132,9 +132,11 @@ Liste cherche_r(Element v,Liste l) {
 // version itérative
 Liste retirePremier_i(Element v, Liste l) {
 	Liste p = l;
-	if(estVide(p)) return l;
 
-	while(!equalsElement((p->suiv)->val, v)&&(!estVide(p->suiv))){
+	if(estVide(p)){return p;}
+	if(equalsElement((p->val),v)){return (l->suiv);}
+
+	while(!estVide(p->suiv)&&!equalsElement((p->suiv)->val, v)){
 		p = p->suiv;
 	}
 	
