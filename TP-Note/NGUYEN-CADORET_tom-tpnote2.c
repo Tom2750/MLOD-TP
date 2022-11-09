@@ -31,7 +31,7 @@ String string_new(char* chaine){
     int i = 0;
     char char_actuel = chaine[i];
 
-    while(!((int)char_actuel == (int)"!")){
+    while(!(char_actuel == "\n")){
         if(i%5 == 0){                                   //on a fini avec la celulle actuelle et on passe à la suivante
             (cellule_actuelle->next) = creerString(char_actuel);
             cellule_actuelle = cellule_actuelle->next;
@@ -59,9 +59,19 @@ void afficherString_r(String s){
     }
 }
 
-int main(void){
+int string_size_r(String s){
+    int compteur = 0;
+    if(estVide(s)){
+        return 0;
+    }
+    else {
+        compteur += (s->chunkSize)+ string_size_r(s->next);
+    }
+    return compteur;
+}
 
-    String s = string_new("Hello !");
+int main(void){
+    String s = string_new("Hello !");           // fait une boucle infini ?
     // afficherString_r(s);
     return 0;
 }
