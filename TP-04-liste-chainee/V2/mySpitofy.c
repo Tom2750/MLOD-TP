@@ -34,7 +34,7 @@ int main(void){
 
 void trieDecroissant(Liste l){
     Liste minimum = l;                  //pointe sur la liste commencant par le minimum
-    Liste p = l;                        //pointe sur la cellule en cours
+    Liste p = l;                        //pointe sur la cellule en cour
     while(!estVide(p)){
         if( ((Music*)(p->val))->Year < ((Music*)(minimum->val))->Year ){
             minimum = p;
