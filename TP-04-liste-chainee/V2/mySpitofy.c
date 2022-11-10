@@ -4,32 +4,32 @@
 #include <string.h>
 
 int main(void){
-    Music musique;
-
-    musique.Name = "gege";
-    musique.Artist = "ag";
-    musique.Album = "azefazef";
-    musique.Genre = "aert";
-    musique.DiscNumber = 2;
-    musique.TrackNumber = 3;
-    musique.Year = 3;
-
-    Liste l = creer(&musique);
-
-    //lecture du fichier
-    FILE* f;
+    Music musique[3000];
+    Liste l;                                    //la liste des 3000 musiques
+    FILE* f;                                    //le fichier
+    char line[200];
+    char* string;
+    int i = 0;
     f=fopen("music.csv","r");
 
-    char buffer[100];
+    printf("%s",fgets(line,200,f));
 
-    // found = strsep(&string," ")) != NULL
-    while(fgets(buffer,100,f) != NULL ) {
-        printf(" %s",buffer);
-    // char* found;
 
-    // for(int i = 0; i < 5; i++){
-    //     found = strsep(&string,", ") != NULL
-    // printf("%s",found);
+
+    while (fgets(line,200,f) != NULL) {
+        string = strdup(line);
+        musique[i].Name = strsep(&string,",");
+        musique[i].Artist = strsep(&string,",");
+        musique[i].Album = strsep(&string,",");
+        musique[i].Genre = strsep(&string,",");
+        musique[i].DiscNumber = atoi(strsep(&string,","));
+        musique[i].TrackNumber = atoi( strsep(&string,",") );
+        musique[i].Year = atoi( strsep(&string,",") );
+        l = ajoutTete(&(musique[i]), l);
+        i++;
     }
+
+    afficheEnvers_r(l);
+
     fclose(f);
 }

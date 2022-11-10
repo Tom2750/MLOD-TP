@@ -154,6 +154,5 @@ void afficheEnvers_r(Liste l) {
 			afficheEnvers_r(l->suiv);
 		}
 		afficheElement(l->val);
-		printf(" ");
 	}
 }
