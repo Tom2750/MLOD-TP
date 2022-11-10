@@ -4,17 +4,15 @@
 #include <string.h>
 
 int main(void){
-    Music musique[3000];
-    Liste l;                                    //la liste des 3000 musiques
-    FILE* f;                                    //le fichier
-    char line[200];
-    char* string;
-    int i = 0;
+    Music musique[3000];                            //permet de ne pas creer de nouvelle musique a chaque tour de boucle
+    Liste l;                                        //la liste des musiques
+    FILE* f;                                        //le fichier
+    char line[200];                                 //ligne en cours
+    char* string;                                   //le compoasant de la musique en cours
+    int i = 0;                                      //compteur de tour de boucle
     f=fopen("music.csv","r");
 
-    printf("%s",fgets(line,200,f));
-
-
+    printf("%s",fgets(line,200,f));                 //premiere ligne
 
     while (fgets(line,200,f) != NULL) {
         string = strdup(line);
@@ -32,4 +30,15 @@ int main(void){
     afficheEnvers_r(l);
 
     fclose(f);
+}
+
+void trieDecroissant(Liste l){
+    Liste minimum = l;                  //pointe sur la liste commencant par le minimum
+    Liste p = l;                        //pointe sur la cellule en cours
+    while(!estVide(p)){
+        if( ((Music*)(p->val))->Year < ((Music*)(minimum->val))->Year ){
+            minimum = p;
+        }
+        p = p->suiv;
+    }
 }
