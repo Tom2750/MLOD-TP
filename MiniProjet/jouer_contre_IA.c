@@ -399,7 +399,7 @@ static void InitPlayers(void)
             player[i].isLeftTeam = true;
             player[i].previousPoint = (Vector2){200, 150};
             player[i].impactPoint = (Vector2){200, 150};
-            player[i].isPlayer = false;
+            player[i].isPlayer = true;
         } else {
             player[i].isLeftTeam = false;
             player[i].previousPoint = (Vector2){200, 150};

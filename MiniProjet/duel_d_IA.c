@@ -18,6 +18,8 @@
 #include <time.h>
 #include <math.h>
 
+#include <time.h>
+
 #if defined(PLATFORM_WEB)
     #include <emscripten/emscripten.h>
 #endif
@@ -41,6 +43,8 @@
 #define GRAVITY                       9.81f
 #define DELTA_FPS                        60
 
+#define SHIELD_RADIUS                   100
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -62,7 +66,8 @@ typedef struct Player {
     bool isPlayer;                  // If is a player or an AI
     bool isAlive;
 
-    bool weapon0;                     //0: normal 1: rafale de petites sphères
+    int borneGauche;
+    int borneDroite;
 } Player;
 
 typedef struct Building {
@@ -96,7 +101,6 @@ static Player player[MAX_PLAYERS] = { 0 };
 static Building building[MAX_BUILDINGS] = { 0 };
 static Explosion explosion[MAX_EXPLOSIONS] = { 0 };
 static Ball ball = { 0 };
-static Ball balles[4];
 
 static int playerTurn = 0;
 static bool ballOnAir = false;
@@ -115,6 +119,7 @@ static void InitBuildings(void);
 static void InitPlayers(void);
 static bool UpdatePlayer(int playerTurn);
 static bool UpdateBall(int playerTurn);
+static bool UpdateIA(int playerTurn);
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -166,13 +171,6 @@ void InitGame(void)
     ballOnAir = false;
     ball.active = false;
 
-    for(int i = 0; i<4 ;i++){
-    balles[i].radius = 10;
-    ballOnAir = false;
-    balles[i].active = false;
-    }
-
-
     InitBuildings();
     InitPlayers();
 
@@ -193,10 +191,7 @@ void UpdateGame(void)
         if (IsKeyPressed('P')) pause = !pause;
 
         if (!pause)
-        {   
-            //Changement d'arme
-            if (IsKeyPressed('Q')) player[playerTurn].weapon0 = !player[playerTurn].weapon0;
-
+        {
             if (!ballOnAir) ballOnAir = UpdatePlayer(playerTurn); // If we are aiming
             else
             {
@@ -253,9 +248,14 @@ void DrawGame(void)
         ClearBackground(RAYWHITE);
 
         if (!gameOver)
-        {
+        {   
+            // Draw shields
+            DrawCircle(player[0].position.x, player[0].position.y, SHIELD_RADIUS, BLUE);
+            DrawCircle(player[1].position.x, player[1].position.y, SHIELD_RADIUS, BLUE);
+
             // Draw buildings
             for (int i = 0; i < MAX_BUILDINGS; i++) DrawRectangleRec(building[i].rectangle, building[i].color);
+
 
             // Draw explosions
             for (int i = 0; i < MAX_EXPLOSIONS; i++)
@@ -269,7 +269,7 @@ void DrawGame(void)
                 if (player[i].isAlive)
                 {
                     if (player[i].isLeftTeam) DrawRectangle(player[i].position.x - player[i].size.x/2, player[i].position.y - player[i].size.y/2,
-                                                             player[i].size.x, player[i].size.y, BLUE);
+                                                             player[i].size.x, player[i].size.y, DARKBLUE);
                     else DrawRectangle(player[i].position.x - player[i].size.x/2, player[i].position.y - player[i].size.y/2,
                                                              player[i].size.x, player[i].size.y, RED);
                 }
@@ -282,7 +282,7 @@ void DrawGame(void)
             if (!ballOnAir)
             {
                 // Draw shot information
-                
+                /*
                 if (player[playerTurn].isLeftTeam)
                 {
                     DrawText(TextFormat("Previous Point %i, %i", (int)player[playerTurn].previousPoint.x, (int)player[playerTurn].previousPoint.y), 20, 20, 20, DARKBLUE);
@@ -301,7 +301,7 @@ void DrawGame(void)
                     DrawText(TextFormat("Aiming Angle %i", player[playerTurn].aimingAngle), screenWidth*3/4, 140, 20, DARKBLUE);
                     DrawText(TextFormat("Aiming Power %i", player[playerTurn].aimingPower), screenWidth*3/4, 170, 20, DARKBLUE);
                 }
-                
+                */
 
                 // Draw aim
                 if (player[playerTurn].isLeftTeam)
@@ -312,15 +312,9 @@ void DrawGame(void)
                                  player[playerTurn].previousPoint, GRAY);
 
                     // Actual aiming
-                    if (player[playerTurn].weapon0){
                     DrawTriangle((Vector2){ player[playerTurn].position.x - player[playerTurn].size.x/4, player[playerTurn].position.y - player[playerTurn].size.y/4 },
                                  (Vector2){ player[playerTurn].position.x + player[playerTurn].size.x/4, player[playerTurn].position.y + player[playerTurn].size.y/4 },
                                  player[playerTurn].aimingPoint, DARKBLUE);
-                    } else {
-                    DrawTriangle((Vector2){ player[playerTurn].position.x - player[playerTurn].size.x/4, player[playerTurn].position.y - player[playerTurn].size.y/4 },
-                                 (Vector2){ player[playerTurn].position.x + player[playerTurn].size.x/4, player[playerTurn].position.y + player[playerTurn].size.y/4 },
-                                 player[playerTurn].aimingPoint, DARKBROWN);
-                    }
                 }
                 else
                 {
@@ -330,15 +324,9 @@ void DrawGame(void)
                                  player[playerTurn].previousPoint, GRAY);
 
                     // Actual aiming
-                    if (player[playerTurn].weapon0){
                     DrawTriangle((Vector2){ player[playerTurn].position.x - player[playerTurn].size.x/4, player[playerTurn].position.y + player[playerTurn].size.y/4 },
                                  (Vector2){ player[playerTurn].position.x + player[playerTurn].size.x/4, player[playerTurn].position.y - player[playerTurn].size.y/4 },
                                  player[playerTurn].aimingPoint, MAROON);
-                    } else {
-                    DrawTriangle((Vector2){ player[playerTurn].position.x - player[playerTurn].size.x/4, player[playerTurn].position.y + player[playerTurn].size.y/4 },
-                                 (Vector2){ player[playerTurn].position.x + player[playerTurn].size.x/4, player[playerTurn].position.y - player[playerTurn].size.y/4 },
-                                 player[playerTurn].aimingPoint, DARKBROWN);
-                    }
                 }
             }
 
@@ -405,14 +393,20 @@ static void InitPlayers(void)
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
         player[i].isAlive = true;
-        player[i].weapon0 = true;
 
         // Decide the team of this player
-        if (i % 2 == 0) player[i].isLeftTeam = true;
-        else player[i].isLeftTeam = false;
-
+        if (i % 2 == 0) {
+            player[i].isLeftTeam = true;
+            player[i].previousPoint = (Vector2){200, 150};
+            player[i].impactPoint = (Vector2){200, 150};
+            player[i].isPlayer = false;
+        } else {
+            player[i].isLeftTeam = false;
+            player[i].previousPoint = (Vector2){200, 150};
+            player[i].impactPoint = (Vector2){200, 150};
+            player[i].isPlayer = false;
+        }
         // Now there is no AI
-        player[i].isPlayer = true;
 
         // Set size, by default by now
         player[i].size = (Vector2){ 40, 40 };
@@ -446,56 +440,58 @@ static void InitPlayers(void)
 }
 
 static bool UpdatePlayer(int playerTurn)
-{   
+{
+    if(player[playerTurn].isPlayer){
     // If we are aiming at the firing quadrant, we calculate the angle
-    if (GetMousePosition().y <= player[playerTurn].position.y)
-    {
-        // Left team
-        if (player[playerTurn].isLeftTeam && GetMousePosition().x >= player[playerTurn].position.x)
+        if (GetMousePosition().y <= player[playerTurn].position.y)
         {
-            // Distance (calculating the fire power)
-            player[playerTurn].aimingPower = sqrt(pow(player[playerTurn].position.x - GetMousePosition().x, 2) + pow(player[playerTurn].position.y - GetMousePosition().y, 2));
-            // Calculates the angle via arcsin
-            player[playerTurn].aimingAngle = asin((player[playerTurn].position.y - GetMousePosition().y)/player[playerTurn].aimingPower)*RAD2DEG;
-            // Point of the screen we are aiming at
-            player[playerTurn].aimingPoint = GetMousePosition();
-
-            // Ball fired
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-            {   
-                player[playerTurn].previousPoint = player[playerTurn].aimingPoint;
-                player[playerTurn].previousPower = player[playerTurn].aimingPower;
-                player[playerTurn].previousAngle = player[playerTurn].aimingAngle;
-
-                if(player[playerTurn].weapon0){
-                    ball.position = player[playerTurn].position;
-                } else {
-                    for(int j = 0; j < 4; j++){
-                        balles[j].position = (Vector2){player[playerTurn].position.x, player[playerTurn].position.y};
-                    }
-                }
-                return true;
-            }
-        }
-        // Right team PAS ENCORE FAIT
-        else if (!player[playerTurn].isLeftTeam && GetMousePosition().x <= player[playerTurn].position.x)
-        {
-            // Distance (calculating the fire power)
-            player[playerTurn].aimingPower = sqrt(pow(player[playerTurn].position.x - GetMousePosition().x, 2) + pow(player[playerTurn].position.y - GetMousePosition().y, 2));
-            // Calculates the angle via arcsin
-            player[playerTurn].aimingAngle = asin((player[playerTurn].position.y - GetMousePosition().y)/player[playerTurn].aimingPower)*RAD2DEG;
-            // Point of the screen we are aiming at
-            player[playerTurn].aimingPoint = GetMousePosition();
-
-            // Ball fired
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            // Left team
+            if (player[playerTurn].isLeftTeam && GetMousePosition().x >= player[playerTurn].position.x)
             {
-                player[playerTurn].previousPoint = player[playerTurn].aimingPoint;
-                player[playerTurn].previousPower = player[playerTurn].aimingPower;
-                player[playerTurn].previousAngle = player[playerTurn].aimingAngle;
-                ball.position = player[playerTurn].position;
+                // Distance (calculating the fire power)
+                player[playerTurn].aimingPower = sqrt(pow(player[playerTurn].position.x - GetMousePosition().x, 2) + pow(player[playerTurn].position.y - GetMousePosition().y, 2));
+                // Calculates the angle via arcsin
+                player[playerTurn].aimingAngle = asin((player[playerTurn].position.y - GetMousePosition().y)/player[playerTurn].aimingPower)*RAD2DEG;
+                // Point of the screen we are aiming at
+                player[playerTurn].aimingPoint = GetMousePosition();
 
-                return true;
+                // Ball fired
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                {
+                    player[playerTurn].previousPoint = player[playerTurn].aimingPoint;
+                    player[playerTurn].previousPower = player[playerTurn].aimingPower;
+                    player[playerTurn].previousAngle = player[playerTurn].aimingAngle;
+                    ball.position = player[playerTurn].position;
+
+                    return true;
+                }
+            }
+            // Right team
+            else if (!player[playerTurn].isLeftTeam && GetMousePosition().x <= player[playerTurn].position.x)
+            {
+                // Distance (calculating the fire power)
+                player[playerTurn].aimingPower = sqrt(pow(player[playerTurn].position.x - GetMousePosition().x, 2) + pow(player[playerTurn].position.y - GetMousePosition().y, 2));
+                // Calculates the angle via arcsin
+                player[playerTurn].aimingAngle = asin((player[playerTurn].position.y - GetMousePosition().y)/player[playerTurn].aimingPower)*RAD2DEG;
+                // Point of the screen we are aiming at
+                player[playerTurn].aimingPoint = GetMousePosition();
+
+                // Ball fired
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                {
+                    player[playerTurn].previousPoint = player[playerTurn].aimingPoint;
+                    player[playerTurn].previousPower = player[playerTurn].aimingPower;
+                    player[playerTurn].previousAngle = player[playerTurn].aimingAngle;
+                    ball.position = player[playerTurn].position;
+
+                    return true;
+                }
+            }
+            else
+            {
+                player[playerTurn].aimingPoint = player[playerTurn].position;
+                player[playerTurn].aimingPower = 0;
+                player[playerTurn].aimingAngle = 0;
             }
         }
         else
@@ -504,14 +500,9 @@ static bool UpdatePlayer(int playerTurn)
             player[playerTurn].aimingPower = 0;
             player[playerTurn].aimingAngle = 0;
         }
+    } else {
+        return UpdateIA(playerTurn);
     }
-    else
-    {
-        player[playerTurn].aimingPoint = player[playerTurn].position;
-        player[playerTurn].aimingPower = 0;
-        player[playerTurn].aimingAngle = 0;
-    }
-
     return false;
 }
 
@@ -523,46 +514,22 @@ static bool UpdateBall(int playerTurn)
     if (!ball.active)
     {
         if (player[playerTurn].isLeftTeam)
-        {   
-            if(player[playerTurn].weapon0){
-                ball.speed.x = cos(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
-                ball.speed.y = -sin(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
-                ball.active = true;
-            } else {
-                for(int i = 0; i<4 ; i++){
-                    balles[i].speed.x = cos(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
-                    balles[i].speed.y = -sin(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
-                    ball.active = true;
-                }
-            }
+        {
+            ball.speed.x = cos(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
+            ball.speed.y = -sin(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
+            ball.active = true;
         }
         else
-        {   
-            if(player[playerTurn].weapon0){
-                ball.speed.x = -cos(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
-                ball.speed.y = -sin(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
-                ball.active = true;
-            } else {
-                for(int i = 0; i<4; i++){
-                    balles[i].speed.x = -cos(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
-                    balles[i].speed.y = -sin(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
-                    balles[i].active = true;
-                }
-            }
+        {
+            ball.speed.x = -cos(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
+            ball.speed.y = -sin(player[playerTurn].previousAngle*DEG2RAD)*player[playerTurn].previousPower*3/DELTA_FPS;
+            ball.active = true;
         }
     }
-    
-    if(player[playerTurn].weapon0){
-        ball.position.x += ball.speed.x;
-        ball.position.y += ball.speed.y;
-        ball.speed.y += GRAVITY/DELTA_FPS;
-    } else {
-        for(int i = 0; i<4; i++){
-            balles[i].position.x += ball.speed.x;
-            balles[i].position.y += ball.speed.y;
-            balles[i].speed.y += GRAVITY/DELTA_FPS;
-        }
-    }
+
+    ball.position.x += ball.speed.x;
+    ball.position.y += ball.speed.y;
+    ball.speed.y += GRAVITY/DELTA_FPS;
 
     // Collision
     if (ball.position.x + ball.radius < 0) return true;
@@ -570,52 +537,27 @@ static bool UpdateBall(int playerTurn)
     else
     {
         // Player collision
-        if(player[playerTurn].weapon0){
-            for (int i = 0; i < MAX_PLAYERS; i++)
+        for (int i = 0; i < MAX_PLAYERS; i++)
+        {
+            if (CheckCollisionCircleRec(ball.position, ball.radius,  (Rectangle){ player[i].position.x - player[i].size.x/2, player[i].position.y - player[i].size.y/2,
+                                                                                  player[i].size.x, player[i].size.y }))
+            {
+                // We can't hit ourselves
+                if (i == playerTurn) return false;
+                else
                 {
-                if (CheckCollisionCircleRec(ball.position, ball.radius,  (Rectangle){ player[i].position.x - player[i].size.x/2, player[i].position.y - player[i].size.y/2,
-                                                                            player[i].size.x, player[i].size.y }))
-                {
-                    // We can't hit ourselves
-                    if (i == playerTurn) return false;
-                    else
-                    {
-                        // We set the impact point
-                        player[playerTurn].impactPoint.x = ball.position.x;
-                        player[playerTurn].impactPoint.y = ball.position.y + ball.radius;
-                        // We destroy the player
-                        player[i].isAlive = false;
-                        return true;
-                    }
-                }
-            }
-        } else {
-            for(int j = 0; j < 4; j++){
-                for (int i = 0; i < MAX_PLAYERS; i++)
-                    {
-                    if (CheckCollisionCircleRec(balles[j].position, balles[j].radius,  (Rectangle){ player[i].position.x - player[i].size.x/2, player[i].position.y - player[i].size.y/2,
-                                                                                player[i].size.x, player[i].size.y }))
-                    {
-                        // We can't hit ourselves
-                        if (i == playerTurn) return false;
-                        else
-                        {
-                            // We set the impact point
-                            player[playerTurn].impactPoint.x = balles[j].position.x;
-                            player[playerTurn].impactPoint.y = balles[j].position.y + balles[j].radius;
-                            // We destroy the player
-                            player[i].isAlive = false;
-                            return true;
-                        }
-                    }
+                    // We set the impact point
+                    player[playerTurn].impactPoint.x = ball.position.x;
+                    player[playerTurn].impactPoint.y = ball.position.y + ball.radius;
+
+                    // We destroy the player
+                    player[i].isAlive = false;
+                    return true;
                 }
             }
         }
-        
+     
 
-
-
-        // TODOOOOOOOOOOOOOOOOOOOOOOOO
         // Building collision
         // NOTE: We only check building collision if we are not inside an explosion
         for (int i = 0; i < MAX_EXPLOSIONS; i++)
@@ -629,10 +571,10 @@ static bool UpdateBall(int playerTurn)
         for (int i = 0; i < MAX_BUILDINGS; i++)
         {
             if (CheckCollisionCircleRec(ball.position, ball.radius, building[i].rectangle))
-            {  
+            {
                 // We set the impact point
                 player[playerTurn].impactPoint.x = ball.position.x;
-                player[playerTurn].impactPoint.y = ball.position.y + ball.radius;
+                player[playerTurn].impactPoint.y = ball.position.y;
 
                 // We create an explosion
                 explosion[explosionNumber].position = player[playerTurn].impactPoint;
@@ -642,10 +584,73 @@ static bool UpdateBall(int playerTurn)
                 return true;
             }
         }
+
+        // Shield collision
+        if(player[playerTurn].isLeftTeam){
+            Vector2 posEnnemi = {player[1].position.x - player[1].size.x/2 , player[1].position.y - player[1].size.y/2};
+            if (CheckCollisionCircles(ball.position, ball.radius, posEnnemi, SHIELD_RADIUS))
+            {
+                // We set the impact point
+                player[playerTurn].impactPoint.x = ball.position.x;
+                player[playerTurn].impactPoint.y = ball.position.y;
+                // We create an explosion
+                explosion[explosionNumber].position = player[playerTurn].impactPoint;
+                explosion[explosionNumber].active = true;
+                explosionNumber++;
+
+                return true;
+            } else {return false;}
+        } else {
+            if (CheckCollisionCircles(ball.position, ball.radius, player[0].position, SHIELD_RADIUS))
+            {
+                // We set the impact point
+                player[playerTurn].impactPoint.x = ball.position.x;
+                player[playerTurn].impactPoint.y = ball.position.y;
+                // We create an explosion
+                explosion[explosionNumber].position = player[playerTurn].impactPoint;
+                explosion[explosionNumber].active = true;
+                explosionNumber++;
+
+                return true;
+            } else {return false;}
+        }
     }
 
     return false;
 }
 
+static bool UpdateIA(int playerTurn){
+    // Calculer ChoseShoot
+    Vector2 ChosenShoot;
 
-// l480 et balles position, finir collision
+    //Left Team
+    if(player[playerTurn].isLeftTeam){
+        //Si on a tiré pas assez fort on tire un peu plus fort
+        if(player[playerTurn].impactPoint.x < player[1].position.x){
+            Vector2 ChosenShoot = { player[playerTurn].previousPoint.x + rand() % 25 , player[playerTurn].position.y - 200 };
+        } else {
+           Vector2 ChosenShoot = { player[playerTurn].previousPoint.x - rand() % 25 , player[playerTurn].position.y - 200 };
+        }
+    //Right Team
+    } else {
+        //Si on a tiré pas assez fort on tire un peu plus fort
+        if(player[playerTurn].impactPoint.x < player[0].position.x){
+            Vector2 ChosenShoot = { player[playerTurn].previousPoint.x + rand() % 25 , player[playerTurn].position.y - 200 };
+        } else {
+           Vector2 ChosenShoot = { player[playerTurn].previousPoint.x - rand() % 25 , player[playerTurn].position.y - 200 };
+        }
+    }
+
+    player[playerTurn].aimingPower = sqrt(pow(player[playerTurn].position.x - ChosenShoot.x, 2) + pow(player[playerTurn].position.y - ChosenShoot.y, 2));
+    // Calculates the angle via arcsin
+    player[playerTurn].aimingAngle = asin((player[playerTurn].position.y - ChosenShoot.y)/player[playerTurn].aimingPower)*RAD2DEG;
+    // Point of the screen we are aiming at
+    player[playerTurn].aimingPoint = ChosenShoot;
+
+    player[playerTurn].previousPoint = player[playerTurn].aimingPoint;
+    player[playerTurn].previousPower = player[playerTurn].aimingPower;
+    player[playerTurn].previousAngle = player[playerTurn].aimingAngle;
+
+    ball.position = player[playerTurn].position;
+    return true;
+}
