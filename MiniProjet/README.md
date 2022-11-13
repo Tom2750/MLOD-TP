@@ -39,3 +39,7 @@ Partie boucliers :
 Les boucliers se comportent comme des batiments. Il faut cependant faire attention de ne pas tirer dans le bouclier du joueur actuel.
 Les dessins sont gérés dans la fonction "DrawGame" et les collisions avec les balles dans "UpdateBall".
 
+
+
+
+URL de la vidéo de présentation : https://drive.google.com/file/d/1IZznF6r2lNGBagDlWGG-hmHxAd_rajLe/view?usp=sharing
