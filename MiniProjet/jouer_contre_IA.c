@@ -586,14 +586,17 @@ static bool UpdateBall(int playerTurn)
         }
 
         // Shield collision
+        // Left team
         if(player[playerTurn].isLeftTeam){
+            //On ne peut tirer que dans le bouclier ennemi
+
             Vector2 posEnnemi = {player[1].position.x - player[1].size.x/2 , player[1].position.y - player[1].size.y/2};
             if (CheckCollisionCircles(ball.position, ball.radius, posEnnemi, SHIELD_RADIUS))
             {
-                // We set the impact point
+                // on met à jour les variables globales
                 player[playerTurn].impactPoint.x = ball.position.x;
                 player[playerTurn].impactPoint.y = ball.position.y;
-                // We create an explosion
+
                 explosion[explosionNumber].position = player[playerTurn].impactPoint;
                 explosion[explosionNumber].active = true;
                 explosionNumber++;
@@ -629,11 +632,12 @@ static bool UpdateIA(int playerTurn){
         if(player[playerTurn].impactPoint.x < player[1].position.x){
             Vector2 ChosenShoot = { player[playerTurn].previousPoint.x + 10 + rand() % 25 , player[playerTurn].position.y - 200 };
         } else {
+        //Sinon l'inverse
            Vector2 ChosenShoot = { player[playerTurn].previousPoint.x - 10 - rand() % 25 , player[playerTurn].position.y - 200 };
         }
     //Right Team
     } else {
-        //Si on a tiré pas assez fort on tire un peu plus fort
+
         if(player[playerTurn].impactPoint.x < player[0].position.x){
             Vector2 ChosenShoot = { player[playerTurn].previousPoint.x + 10 + rand() % 25 , player[playerTurn].position.y - 200 };
         } else {
@@ -641,10 +645,11 @@ static bool UpdateIA(int playerTurn){
         }
     }
 
+    //Une fois qu'on a les valeurs de chosenShoot, on met à jour les variables globales.
     player[playerTurn].aimingPower = sqrt(pow(player[playerTurn].position.x - ChosenShoot.x, 2) + pow(player[playerTurn].position.y - ChosenShoot.y, 2));
-    // Calculates the angle via arcsin
+
     player[playerTurn].aimingAngle = asin((player[playerTurn].position.y - ChosenShoot.y)/player[playerTurn].aimingPower)*RAD2DEG;
-    // Point of the screen we are aiming at
+
     player[playerTurn].aimingPoint = ChosenShoot;
 
     player[playerTurn].previousPoint = player[playerTurn].aimingPoint;
