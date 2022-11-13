@@ -282,7 +282,7 @@ void DrawGame(void)
             if (!ballOnAir)
             {
                 // Draw shot information
-                /*
+                
                 if (player[playerTurn].isLeftTeam)
                 {
                     DrawText(TextFormat("Previous Point %i, %i", (int)player[playerTurn].previousPoint.x, (int)player[playerTurn].previousPoint.y), 20, 20, 20, DARKBLUE);
@@ -301,7 +301,7 @@ void DrawGame(void)
                     DrawText(TextFormat("Aiming Angle %i", player[playerTurn].aimingAngle), screenWidth*3/4, 140, 20, DARKBLUE);
                     DrawText(TextFormat("Aiming Power %i", player[playerTurn].aimingPower), screenWidth*3/4, 170, 20, DARKBLUE);
                 }
-                */
+                
 
                 // Draw aim
                 if (player[playerTurn].isLeftTeam)
@@ -397,13 +397,13 @@ static void InitPlayers(void)
         // Decide the team of this player
         if (i % 2 == 0) {
             player[i].isLeftTeam = true;
-            player[i].previousPoint = (Vector2){200, 150};
-            player[i].impactPoint = (Vector2){200, 150};
+            player[i].previousPoint = (Vector2){400, 70};
+            player[i].impactPoint = (Vector2){400, 70};
             player[i].isPlayer = true;
         } else {
             player[i].isLeftTeam = false;
-            player[i].previousPoint = (Vector2){200, 150};
-            player[i].impactPoint = (Vector2){200, 150};
+            player[i].previousPoint = (Vector2){400, 70};
+            player[i].impactPoint = (Vector2){400, 70};
             player[i].isPlayer = false;
         }
         // Now there is no AI
@@ -627,17 +627,17 @@ static bool UpdateIA(int playerTurn){
     if(player[playerTurn].isLeftTeam){
         //Si on a tiré pas assez fort on tire un peu plus fort
         if(player[playerTurn].impactPoint.x < player[1].position.x){
-            Vector2 ChosenShoot = { player[playerTurn].previousPoint.x + rand() % 25 , player[playerTurn].position.y - 200 };
+            Vector2 ChosenShoot = { player[playerTurn].previousPoint.x + 10 + rand() % 25 , player[playerTurn].position.y - 200 };
         } else {
-           Vector2 ChosenShoot = { player[playerTurn].previousPoint.x - rand() % 25 , player[playerTurn].position.y - 200 };
+           Vector2 ChosenShoot = { player[playerTurn].previousPoint.x - 10 - rand() % 25 , player[playerTurn].position.y - 200 };
         }
     //Right Team
     } else {
         //Si on a tiré pas assez fort on tire un peu plus fort
         if(player[playerTurn].impactPoint.x < player[0].position.x){
-            Vector2 ChosenShoot = { player[playerTurn].previousPoint.x + rand() % 25 , player[playerTurn].position.y - 200 };
+            Vector2 ChosenShoot = { player[playerTurn].previousPoint.x + 10 + rand() % 25 , player[playerTurn].position.y - 200 };
         } else {
-           Vector2 ChosenShoot = { player[playerTurn].previousPoint.x - rand() % 25 , player[playerTurn].position.y - 200 };
+           Vector2 ChosenShoot = { player[playerTurn].previousPoint.x - 10 - rand() % 25 , player[playerTurn].position.y - 200 };
         }
     }
 
